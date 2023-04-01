@@ -1,4 +1,3 @@
-
 const approveButton = document.createElement('button')
 approveButton.innerText = 'Approve'
 approveButton.classList.add('btn-primary', 'btn')
@@ -9,16 +8,31 @@ approveButton.value = 'approve'
 approveButton.onclick = () => {
     const filesChangedUrl = `${window.location.origin}${window.location.pathname}/files`
     const newTab = window.open(filesChangedUrl, '_blank', 'popup,width=100,height=100,scrollbars=no,resizable=no,menubar=no,status=no,titlebar=no')
+    const onDocumentComplete = () => {
+        if (newTab.document.readyState === 'complete') {
+            newTab.document.removeEventListener('readystatechange', onDocumentComplete)
+            setTimeout(() => {
+                newTab.close()
+                window.focus()
+            }, 500)
+        }
+    }
+
+    const onNewTabBeforeUnload = () => {
+        newTab.removeEventListener('beforeunload', onNewTabBeforeUnload)
+        const checkNewTabReady = setInterval(() => {
+            if (newTab.document.readyState === 'complete') {
+                clearInterval(checkNewTabReady)
+                onDocumentComplete()
+            }
+        }, 100)
+    }
+    newTab.addEventListener('beforeunload', onNewTabBeforeUnload)
     newTab.onload = () => {
         const summaryButton = newTab.document.querySelector('#review-changes-modal > summary')
         summaryButton.click()
         const approveButton = newTab.document.querySelector('#review-changes-modal > div > div > div > form > div.form-actions.p-2.m-0.color-bg-subtle.border-top > button:nth-child(3)')
-        console.log(approveButton)
         approveButton.click()
-        setTimeout(() => {
-            newTab.close()
-            window.focus();
-        }, 5000);
     }
 }
 
