@@ -1,5 +1,5 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "GitHub PR Approve Button",
   "version": "1.0",
   "description": "Adds a button to approve pull requests on GitHub.",
@@ -7,6 +7,12 @@
     "activeTab",
     "tabs"
   ],
+  "host_permissions": [
+    "https://github.com/"
+  ],
+  "icons": {
+    "512": "images/default_icon.png"
+  },
   "content_scripts": [
     {
       "matches": [
