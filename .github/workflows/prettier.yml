@@ -1,0 +1,47 @@
+name: Format JavaScript code
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.x'
+
+      - name: Install Prettier
+        run: npm install
+
+      - name: Check JavaScript code formatting
+        run: |
+          npx prettier --check '**/*.js'
+          if [ $? -ne 0 ]; then
+            echo "::set-output name=formatted::false"
+            exit 1
+          else
+            echo "::set-output name=formatted::true"
+          fi
+
+      - name: Comment on pull request
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/github-script@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const formatted = '${{ steps.format.outputs.formatted }}' === 'true';
+            const message = formatted ? 'All JavaScript code is properly formatted 👍' : 'Some JavaScript code needs formatting 👎';
+            const comment = `
+              <details>
+                <summary>${message}</summary>
+                <p>See the <code>.prettierrc.js</code> file for the expected formatting rules.</p>
+              </details>
+            `;
+            const { owner, repo, number } = context.issue;
+            await github.issues.createComment({ owner, repo, issue_number: number, body: comment });
